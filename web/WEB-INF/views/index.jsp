@@ -8,14 +8,13 @@
 <head>
     <title>Файловый менеджер</title>
 </head>
-
 <body>
 
 <spring:form method="post" modelAttribute="userJSP" action="check-user">
 
     <h2>Добро пожаловать!</h2>
     Логин: <spring:input path="login"/> <br/>
-    Пароль: <spring:input path="password"/> <br/>
+    Пароль: <spring:password path="password"/> <br/>
     <spring:button>Войти</spring:button>
 
 </spring:form>

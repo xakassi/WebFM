@@ -8,19 +8,18 @@
 <head>
     <title>Файловый менеджер</title>
 </head>
-
 <body>
 
 <spring:form method="post" modelAttribute="userJSP" action="check-user">
 
     <h2>Добро пожаловать!</h2>
     Логин: <spring:input path="login"/> <br/>
-    Пароль: <spring:input path="password"/> <br/>
+    Пароль: <spring:password path="password"/> <br/>
     <spring:button>Войти</spring:button>
 
 </spring:form>
 
-<img src="/resources/img/filesImg.png">
+<img src="<c:url value="/resources/img/filesImg.png"/>">
 
 <spring:form method="post" modelAttribute="userJSP" action="reg-user">
 
