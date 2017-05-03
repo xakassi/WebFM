@@ -5,7 +5,8 @@
     <title>Регистрация</title>
 </head>
 <body>
-Вы успешно зарегистрированы!
+<span style="color: green;">Вы успешно зарегистрированы!</span>
+<br/><br/>
 <spring:form method="get" modelAttribute="userJSP" action="/">
     <spring:button>Продолжить</spring:button>
 </spring:form>

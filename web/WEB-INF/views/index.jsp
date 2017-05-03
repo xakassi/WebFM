@@ -13,11 +13,15 @@
 <spring:form method="post" modelAttribute="userJSP" action="check-user">
 
     <h2>Добро пожаловать!</h2>
-    Логин: <spring:input path="login"/> <br/>
+    Логин: <spring:input path="login"/>
+    <br/>
     Пароль: <spring:password path="password"/> <br/>
     <spring:button>Войти</spring:button>
 
 </spring:form>
+
+<span style="color: red; ">${message}</span>
+<br/><br/><br/>
 
 <img src="<c:url value="/resources/img/filesImg.png"/>">
 

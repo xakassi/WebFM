@@ -128,8 +128,35 @@ public class DAODocument extends DAOFM<Document, Integer> {
     }
 
     @Override
-    public Boolean create(Document entity) {
-        return null;
+    public Boolean create(Document entity) throws SQLException {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = connection.prepareStatement(
+                    "INSERT INTO documents " +
+                            "(name, owner, doc_path, parent_id, isDirectory, isProtected) " +
+                            "VALUES (?, ?, ?, ?, ?, ?)");
+            stmt.setString(1, entity.getName());
+            stmt.setString(2, entity.getOwner());
+            stmt.setString(3, entity.getDocPath());
+            stmt.setInt(4, entity.getParentId());
+            int dir = entity.getDirectory() ? 1 : 0;
+            stmt.setInt(5, dir);
+            int prot = entity.getProtected() ? 1 : 0;
+            stmt.setInt(6, prot);
+            stmt.execute();
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (stmt != null) {
+                stmt.close();
+            }
+            if (stmt != null) {
+                stmt.close();
+            }
+        }
+        return true;
     }
 
     @Override

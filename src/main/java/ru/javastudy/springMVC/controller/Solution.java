@@ -1,5 +1,6 @@
 package ru.javastudy.springMVC.controller;
 
+import ru.javastudy.springMVC.model.Document;
 import ru.javastudy.springMVC.service.DocService;
 
 /**
@@ -11,6 +12,7 @@ public class Solution {
         UserService us = new UserService();
         System.out.println(us.register(user.getLogin(), user.getPassword()));*/
         DocService ds = new DocService();
-        System.out.println(ds.get(1));
+        Document d = new Document(5, "Ляляля", "Taisia", "", 0, false, false);
+        ds.createDocument(d);
     }
 }

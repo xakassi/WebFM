@@ -14,6 +14,8 @@
     <spring:button>Продолжить</spring:button>
 </spring:form>
 
+<span style="color: red; ">${message}</span>
+
 
 </body>
 </html>
