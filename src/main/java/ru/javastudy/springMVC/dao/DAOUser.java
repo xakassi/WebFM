@@ -1,5 +1,6 @@
 package ru.javastudy.springMVC.dao;
 
+import ru.javastudy.springMVC.model.Document;
 import ru.javastudy.springMVC.model.User;
 
 import java.sql.PreparedStatement;
@@ -77,8 +78,21 @@ public class DAOUser extends DAOFM<User, String> {
     }
 
     @Override
-    public Boolean delete(String id) {
-        return null;
+    public Boolean delete(String id) throws SQLException {
+        User user = read(id);
+        if(user == null) return false;
+        PreparedStatement stmt = null;
+        try {
+            stmt = connection.prepareStatement(
+                    "DELETE FROM users WHERE login=?");
+            stmt.setString(1, id);
+            stmt.execute();
+        } finally {
+            if (stmt != null) {
+                stmt.close();
+            }
+        }
+        return true;
     }
 
     public Boolean isLoginNotExist(String login) throws Exception {

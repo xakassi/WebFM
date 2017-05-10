@@ -37,4 +37,19 @@ public class UserService {
         User u = daoUser.read(login);
         return u.getPassword().equals(password);
     }
+
+    public ArrayList<Document> getUserDocuments (String login) throws Exception {
+        DocService ds = new DocService();
+        ArrayList<Document> allDocs = ds.getAllDocuments();
+        ArrayList<Document> userDocs = new ArrayList<>();
+        for(Document d: allDocs){
+            if (d.getOwner().equals(login)) userDocs.add(d);
+        }
+        return userDocs;
+    }
+
+    public void deleteUser(String login) throws Exception {
+        daoPermission.deleteUserPermissions(login);
+        daoUser.delete(login);
+    }
 }

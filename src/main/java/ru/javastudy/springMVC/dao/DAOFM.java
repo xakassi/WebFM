@@ -29,5 +29,5 @@ abstract class DAOFM<E, K> {
 
     public abstract Boolean create(E entity) throws SQLException;
 
-    public abstract Boolean delete(K id);
+    public abstract Boolean delete(K id) throws SQLException;
 }

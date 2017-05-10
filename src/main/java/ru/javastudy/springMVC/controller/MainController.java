@@ -1,5 +1,6 @@
 package ru.javastudy.springMVC.controller;
 
+import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.MimeUtility;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.*;
+import java.util.ArrayList;
 
 @SessionAttributes("userJSP")
 @Controller
@@ -28,7 +30,6 @@ public class MainController {
         modelAndView.addObject("docId", parentId);
         modelAndView.addObject("ds", ds);
         Document curDir = ds.get(parentId);
-        System.out.println(parentId);
         String name;
         if (!file.isEmpty()) {
             try {
@@ -56,7 +57,6 @@ public class MainController {
                 }
                 //File uploadedFile = new File(dir.getAbsolutePath() + File.separator + name);
                 File uploadedFile = new File(uploadPath + name);
-                System.out.println(uploadedFile.exists());
                 if (uploadedFile.exists()) {
                     request.setAttribute("message", "Файл с таким именем уже существует!");
                     return modelAndView;
@@ -67,7 +67,10 @@ public class MainController {
                 stream.flush();
                 stream.close();
 
-                Document uploadDocument = new Document(0, name, user.getLogin(), uploadPath, parentId, false, false);
+                String pathhh = "";
+                if (parentId != 0) pathhh = curDir.getDocPath() + curDir.getName() + File.separator;
+
+                Document uploadDocument = new Document(0, name, user.getLogin(), pathhh, parentId, false, false);
                 //System.out.println(uploadDocument);
                 ds.createDocument(uploadDocument);
 
@@ -106,8 +109,7 @@ public class MainController {
                 uploadPath = dir.getAbsolutePath() + File.separator + curDir.getDocPath() + curDir.getName() + File.separator;
             }
             File uploadedFile = new File(uploadPath + folderName + File.separator);
-            System.out.println(uploadedFile.exists());
-            System.out.println(uploadPath + folderName + File.separator);
+
             if (uploadedFile.exists()) {
                 request.setAttribute("message", "Директория с таким именем уже существует!");
                 return modelAndView;
@@ -120,10 +122,51 @@ public class MainController {
                 newPath = parDoc.getDocPath() + parDoc.getName() + File.separator;
             }
             Document uploadDocument = new Document(0, folderName, user.getLogin(), newPath, parentId, true, false);
-            System.out.println(uploadDocument);
             ds.createDocument(uploadDocument);
         } catch (Exception e) {
             return modelAndView;
+        }
+        return modelAndView;
+    }
+
+    public void deleteFromBD(DocService ds, Integer id) throws Exception {
+        ArrayList<Document> children = (ArrayList<Document>) ds.getDirectory(id);
+        for (Document d : children) {
+            deleteFromBD(ds, d.getDocId());
+        }
+        ds.deleteDocument(id);
+    }
+
+    public void deleteFromReality(File file) {
+        if (!file.exists())
+            return;
+        if (file.isDirectory()) {
+            for (File f : file.listFiles())
+                deleteFromReality(f);
+        }
+        file.delete();
+    }
+
+    @RequestMapping(value = "/delete")
+    public ModelAndView deleteFileOrFolder(@RequestParam("marked") Integer markedFile, @ModelAttribute("userJSP") User user, HttpServletRequest request) throws Exception {
+        Integer parentId = new Integer(request.getParameter("parentId"));
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("directory");
+        DocService ds = new DocService();
+        modelAndView.addObject("docId", parentId);
+        modelAndView.addObject("ds", ds);
+        String rootPath = "C:\\Users\\user\\Documents\\Веб-приложение\\";
+        File dir = new File(rootPath);
+        Document curDir = ds.get(markedFile);
+
+        if (curDir != null) {
+            if (!curDir.getOwner().equals(user.getLogin())) {
+                request.setAttribute("message", "Эту операцию может выполнить только владелец!");
+                return modelAndView;
+            }
+            String deletedPath = dir.getAbsolutePath() + File.separator + curDir.getDocPath() + curDir.getName();
+            deleteFromReality(new File(deletedPath));
+            deleteFromBD(ds, markedFile);
         }
         return modelAndView;
     }
@@ -141,29 +184,29 @@ public class MainController {
         return modelAndView;
     }
 
-    /**
-     * Size of a byte buffer to read/write file
-     */
-    private static final int BUFFER_SIZE = 4096;
-
-    /**
-     * Path of the file to be downloaded, relative to application's directory
-     */
-    private String filePath = "/downloads/SpringProject.zip";
-
-    /**
-     * Method for handling file download request from client
-     */
     @RequestMapping(value = "/downloadFile", method = RequestMethod.GET)
-    public void doDownload(HttpServletRequest request, HttpServletResponse response) throws IOException, FileNotFoundException {
+    public ModelAndView doDownload(HttpServletRequest request, HttpServletResponse response, @ModelAttribute("userJSP") User user) throws Exception {
+        Integer myId = new Integer(request.getParameter("myId"));
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("directory");
+        DocService ds = new DocService();
+        modelAndView.addObject("docId", myId);
+        modelAndView.addObject("ds", ds);
 
-      /*  // get absolute path of the application
+        final int BUFFER_SIZE = 4096;
+        String filePath = "C:\\Users\\user\\Documents\\Веб-приложение";
+
+        Document curDir = ds.get(myId);
+
+        if (!curDir.getOwner().equals(user.getLogin())) {
+            request.setAttribute("message", "Эту операцию может выполнить только владелец!");
+            return modelAndView;
+        }
+
+        String fullPath = filePath + File.separator + curDir.getDocPath() + curDir.getName();
+
         ServletContext context = request.getServletContext();
-        String appPath = context.getRealPath("");
-        System.out.println("appPath = " + appPath);
 
-        // construct the complete absolute path of the file
-        String fullPath = appPath + filePath;
         File downloadFile = new File(fullPath);
         FileInputStream inputStream = new FileInputStream(downloadFile);
 
@@ -173,17 +216,13 @@ public class MainController {
             // set to binary type if MIME mapping not found
             mimeType = "application/octet-stream";
         }
-        System.out.println("MIME type: " + mimeType);
 
         // set content attributes for the response
         response.setContentType(mimeType);
         response.setContentLength((int) downloadFile.length());
 
         // set headers for the response
-        String headerKey = "Content-Disposition";
-        String headerValue = String.format("attachment; filename=\"%s\"",
-                downloadFile.getName());
-        response.setHeader(headerKey, headerValue);
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + MimeUtility.encodeWord(downloadFile.getName(), "utf-8", "Q") + "\"");
 
         // get output stream of the response
         OutputStream outStream = response.getOutputStream();
@@ -197,8 +236,8 @@ public class MainController {
         }
 
         inputStream.close();
-        outStream.close();*/
-
+        outStream.close();
+        return modelAndView;
     }
 
     /*Попадаем сюда на старте приложения*/
@@ -265,6 +304,31 @@ public class MainController {
             request.setAttribute("message", "Введенный логин уже занят!");
             modelAndView.setViewName("reg");
         }
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/deleteUser")
+    public ModelAndView deleteUser(@ModelAttribute("userJSP") User user) throws Exception {
+        ModelAndView modelAndView = new ModelAndView();
+        UserService us = new UserService();
+        DocService ds = new DocService();
+
+        ArrayList<Document> userDocs = us.getUserDocuments(user.getLogin());
+        String rootPath = "C:\\Users\\user\\Documents\\Веб-приложение\\";
+        File dir = new File(rootPath);
+
+        for (Document d : userDocs) {
+            if (d != null) {
+                String deletedPath = dir.getAbsolutePath() + File.separator + d.getDocPath() + d.getName();
+                deleteFromReality(new File(deletedPath));
+                deleteFromBD(ds, d.getDocId());
+            }
+        }
+
+
+
+        us.deleteUser(user.getLogin());
+        modelAndView.setViewName("index");
         return modelAndView;
     }
 }

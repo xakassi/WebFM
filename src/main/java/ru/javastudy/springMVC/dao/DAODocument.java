@@ -160,7 +160,20 @@ public class DAODocument extends DAOFM<Document, Integer> {
     }
 
     @Override
-    public Boolean delete(Integer id) {
-        return null;
+    public Boolean delete(Integer id) throws SQLException {
+        Document doc = read(id);
+        if(doc == null) return false;
+        PreparedStatement stmt = null;
+        try {
+            stmt = connection.prepareStatement(
+                    "DELETE FROM documents WHERE document_id=?");
+            stmt.setInt(1, id);
+            stmt.execute();
+        } finally {
+            if (stmt != null) {
+                stmt.close();
+            }
+        }
+        return true;
     }
 }

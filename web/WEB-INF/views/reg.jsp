@@ -10,7 +10,7 @@
 
     <h2>Регистрация</h2>
     Логин: <spring:input path="login"/> <br/>
-    Пароль: <spring:input path="password"/> <br/>
+    Пароль: <spring:password path="password"/> <br/>
     <spring:button>Продолжить</spring:button>
 </spring:form>
 

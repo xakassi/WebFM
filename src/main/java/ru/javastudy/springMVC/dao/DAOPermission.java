@@ -2,6 +2,7 @@ package ru.javastudy.springMVC.dao;
 
 import ru.javastudy.springMVC.extra.Pair;
 import ru.javastudy.springMVC.model.Permission;
+import ru.javastudy.springMVC.model.User;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -59,5 +60,20 @@ public class DAOPermission extends DAOFM<Permission, Pair<Integer, String>> {
     @Override
     public Boolean delete(Pair<Integer, String> id) {
         return null;
+    }
+
+    public Boolean deleteUserPermissions(String login) throws SQLException {
+        PreparedStatement stmt = null;
+        try {
+            stmt = connection.prepareStatement(
+                    "DELETE FROM permissions WHERE user_login=?");
+            stmt.setString(1, login);
+            stmt.execute();
+        } finally {
+            if (stmt != null) {
+                stmt.close();
+            }
+        }
+        return true;
     }
 }
